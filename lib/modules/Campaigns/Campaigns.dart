@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:beamer/beamer.dart';
 import 'package:coffee_shop_dashboard/core/services/date_picker_service.dart';
 import 'package:coffee_shop_dashboard/modules/layouts/layout.dart';
 import 'package:coffee_shop_dashboard/widgets/my_widgets/my_flex.dart';
@@ -316,12 +317,9 @@ class _AddCampaignScreenState extends State<AddCampaignScreen> {
                                 uploadedImageName = null;
                               });
 
-                              Get.snackbar(
-                                "Success",
-                                widget.docId != null ? "Campaign updated successfully" : "Campaign created successfully",
-                              );
-
-                              Navigator.pop(context); // Go back to list
+                              if (context.mounted) {
+                                context.beamToNamed('/campaigns');
+                              }
                             }
                           },
                           child: Center(

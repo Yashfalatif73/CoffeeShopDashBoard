@@ -243,6 +243,7 @@ class Sidebar extends StatelessWidget {
           _menuItem('assets/images/products.png', 'Products', 1),
           _menuItem('assets/images/orders.png', 'Orders', 2),
           _menuItem('assets/images/campaigns.png', 'Campaigns', 3),
+          _menuItem('assets/images/campaigns.png', 'Vouchers', 4),
 
           const Spacer(),
 

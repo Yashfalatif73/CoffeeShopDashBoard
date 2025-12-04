@@ -7,6 +7,8 @@ import 'package:coffee_shop_dashboard/modules/Products/Products.dart';
 import 'package:flutter/foundation.dart';
 import 'modules/Campaigns/campaigns_list_page.dart';
 import 'modules/Dashboard/dashboard_screen.dart';
+import 'modules/Vouchers/voucher_listing.dart';
+import 'modules/Vouchers/voucher_screen.dart';
 
 final simpleLocationBuilder = RoutesLocationBuilder(
     routes: {
@@ -53,6 +55,17 @@ final simpleLocationBuilder = RoutesLocationBuilder(
         key: ValueKey('campaigns'),
         title: 'Campaigns',
         child: CampaignsListPage(),
+      ),
+
+      '/add-voucher': (context, state, data) => const BeamPage(
+        key: ValueKey('add-voucher'),
+        title: 'Add Voucher',
+        child: AddVoucherScreen(),
+      ),
+      '/vouchers': (context, state, data) => const BeamPage(
+        key: ValueKey('vouhcers'),
+        title: 'Vouchers',
+        child: VoucherListPage(),
       ),
       //
       // ///Home Screen or Dashboard

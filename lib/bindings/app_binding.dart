@@ -1,3 +1,4 @@
+import 'package:coffee_shop_dashboard/controllers/VoucherController/voucherController.dart';
 import 'package:coffee_shop_dashboard/controllers/home_controller.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
@@ -11,5 +12,6 @@ class AppBinding extends Bindings {
     Get.put(AuthController(), permanent: true);
     Get.put(HomeController(), permanent: true);
     Get.put(CampaignsFirebaseController(), permanent: true);
+    Get.put(VoucherController(), permanent: true);
   }
 }

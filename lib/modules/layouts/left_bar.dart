@@ -129,6 +129,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                     isCondensed: isCondensed,
                     route: '/campaigns',
                   ),
+                  NavigationItem(
+                    iconData: Icons.menu,
+                    title: "Vouchers",
+                    isCondensed: isCondensed,
+                    route: '/vouchers',
+                  ),
 
                   NavigationItem(
                     iconData: Icons.settings,
