@@ -1,6 +1,7 @@
 import 'package:beamer/beamer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coffee_shop_dashboard/controllers/product_controller.dart';
+import 'package:coffee_shop_dashboard/models/product_model.dart';
 import 'package:coffee_shop_dashboard/modules/layouts/layout.dart';
 import 'package:coffee_shop_dashboard/widgets/dialogs/confirmation_dialog.dart';
 import 'package:coffee_shop_dashboard/widgets/my_widgets/my_card.dart';
@@ -120,6 +121,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     DataColumn(label: MyText("Category", fontSize: 14, fontWeight: 700)),
                     DataColumn(label: MyText("Image", fontSize: 14, fontWeight: 700)),
                     DataColumn(label: MyText("Size", fontSize: 14, fontWeight: 700)),
+                    DataColumn(label: MyText("Quantity", fontSize: 14, fontWeight: 700)),
                     DataColumn(label: MyText("Price", fontSize: 14, fontWeight: 700)),
                     DataColumn(label: MyText("Actions", fontSize: 14, fontWeight: 700)),
                   ],
@@ -128,19 +130,8 @@ class _ProductsPageState extends State<ProductsPage> {
                     final doc = entry.value;
                     final data = doc.data() as Map<String, dynamic>;
                     
-                    final name = data["name"] ?? "";
-                    final category = data["category"] ?? "";
-                    final subCategory = data["subCategory"] ?? "";
-                    final availableIn = data["availableIn"] ?? "";
-                    final size = data["size"] ?? "-";
-                    final price = data["price"] ?? "0";
-                    final imagePath = data["image"] ?? "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400";
-
-                    // Build category display text
-                    String categoryText = category;
-                    if (category == "Coffee" && subCategory.isNotEmpty) {
-                      categoryText = "$subCategory ${availableIn.isNotEmpty ? '($availableIn)' : ''}";
-                    }
+                    // Convert to ProductModel
+                    final product = ProductModel.fromJson(data);
 
                     return DataRow(
                       cells: [
@@ -163,7 +154,7 @@ class _ProductsPageState extends State<ProductsPage> {
                         DataCell(
                           SizedBox(
                             width: 150,
-                            child: MyText(name, fontSize: 14, overflow: TextOverflow.ellipsis),
+                            child: MyText(product.name, fontSize: 14, overflow: TextOverflow.ellipsis),
                           ),
                         ),
                         
@@ -171,7 +162,7 @@ class _ProductsPageState extends State<ProductsPage> {
                         DataCell(
                           SizedBox(
                             width: 150,
-                            child: MyText(categoryText, fontSize: 14, overflow: TextOverflow.ellipsis),
+                            child: MyText(product.getCategoryDisplayText(), fontSize: 14, overflow: TextOverflow.ellipsis),
                           ),
                         ),
                         
@@ -180,7 +171,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              imagePath,
+                              product.image,
                               width: 40,
                               height: 40,
                               fit: BoxFit.cover,
@@ -200,11 +191,30 @@ class _ProductsPageState extends State<ProductsPage> {
                         ),
                         
                         // SIZE
-                        DataCell(MyText(size, fontSize: 14)),
+                        DataCell(MyText(product.getSizeDisplayText(), fontSize: 14)),
+                        
+                        // QUANTITY
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: product.quantity < 10 
+                                ? Colors.red.withOpacity(0.1) 
+                                : kLightGreen.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: MyText(
+                              product.quantity.toString(), 
+                              fontSize: 14, 
+                              fontWeight: 600,
+                              color: product.quantity < 10 ? colorRed : kPrimaryGreen,
+                            ),
+                          ),
+                        ),
                         
                         // PRICE
                         DataCell(
-                          MyText("\$$price", fontSize: 14, fontWeight: 700, color: kPrimaryGreen),
+                          MyText("\$${product.price}", fontSize: 14, fontWeight: 700, color: kPrimaryGreen),
                         ),
                         
                         // ACTIONS
@@ -214,7 +224,7 @@ class _ProductsPageState extends State<ProductsPage> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined, size: 20, color: kPrimaryGreen),
-                                onPressed: () => _showEditProductDialog(context, doc.id, data),
+                                onPressed: () => _showEditProductDialog(context, doc.id, product),
                                 tooltip: "Edit Product",
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -222,7 +232,7 @@ class _ProductsPageState extends State<ProductsPage> {
                               const SizedBox(width: 8),
                               IconButton(
                                 icon: const Icon(Icons.delete_outline, size: 20, color: colorRed),
-                                onPressed: () => _showDeleteConfirmation(context, doc.id, name),
+                                onPressed: () => _showDeleteConfirmation(context, doc.id, product.name),
                                 tooltip: "Delete Product",
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -245,9 +255,9 @@ class _ProductsPageState extends State<ProductsPage> {
   /// --------------------------------------------------------------
   /// EDIT PRODUCT DIALOG
   /// --------------------------------------------------------------
-  void _showEditProductDialog(BuildContext context, String docId, Map<String, dynamic> data) {
+  void _showEditProductDialog(BuildContext context, String docId, ProductModel product) {
     // Load data into controller
-    productController.loadProductData(data);
+    productController.loadProductData(product);
 
     showDialog(
       context: context,
@@ -315,10 +325,12 @@ class _ProductsPageState extends State<ProductsPage> {
                         ),
                         onPressed: () async {
                           bool success = await productController.updateProduct(
+                            context: context,
                             docId: docId,
                             name: productController.nameController.text,
                             price: productController.priceController.text,
                             category: productController.selectedCategory.value,
+                            quantity: productController.quantityController.text,
                             subCategory: productController.selectedSubCategory.value,
                             availableIn: productController.selectedAvailable.value,
                             size: productController.selectedSize.value,
@@ -349,7 +361,7 @@ class _ProductsPageState extends State<ProductsPage> {
           confirmBtnText: "Delete",
           cancelBtnText: "Cancel",
           onConfirm: () {
-            productController.deleteProduct(docId);
+            productController.deleteProduct(context, docId);
             Navigator.pop(dialogContext);
           },
           onCancel: () {
@@ -416,6 +428,62 @@ class AddProductForm extends StatelessWidget {
                 ],
               ),
             ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // QUANTITY
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MyText("Quantity *", fontWeight: 700),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: controller.quantityController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: "Enter quantity",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            const Expanded(child: SizedBox()), // Empty space for alignment
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // QUANTITY
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MyText("Quantity *", fontWeight: 700),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: controller.quantityController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: "Enter quantity",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            const Expanded(child: SizedBox()), // Empty space for alignment
           ],
         ),
 

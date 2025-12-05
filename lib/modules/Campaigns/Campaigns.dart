@@ -8,8 +8,6 @@ import 'package:coffee_shop_dashboard/widgets/my_widgets/my_responsiv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-
 import '../../controllers/campaign_controller/campaignControllers.dart';
 import '../../core/helpers/colors.dart';
 import '../../widgets/my_widgets/my_button.dart';
@@ -36,7 +34,7 @@ class _AddCampaignScreenState extends State<AddCampaignScreen> {
 
     if (widget.docId != null) {
       // Fetch document data
-      campaignsController.getCampaignById(widget.docId!).then((data) {
+      campaignsController.getCampaignById(widget.docId!, context).then((data) {
         if (data != null) {
           setState(() {
             titleController1.text = data["title"] ?? "";
@@ -281,7 +279,7 @@ class _AddCampaignScreenState extends State<AddCampaignScreen> {
                                 titleController2.text.isEmpty ||
                                 startDate == null ||
                                 endDate == null) {
-                              Get.snackbar("Error", "Please fill all fields");
+                              campaignsController.generateMessage("Please fill all fields", context);
                               return;
                             }
 
@@ -290,6 +288,7 @@ class _AddCampaignScreenState extends State<AddCampaignScreen> {
                             if (widget.docId != null) {
                               // ⬅ Edit mode
                               success = await campaignsController.updateCampaign(
+                                context: context,
                                 docId: widget.docId!,
                                 title: titleController1.text.trim(),
                                 subtitle: titleController2.text.trim(),
@@ -299,6 +298,7 @@ class _AddCampaignScreenState extends State<AddCampaignScreen> {
                             } else {
                               // ⬅ Add mode
                               success = await campaignsController.addCampaign(
+                                context: context,
                                 title: titleController1.text.trim(),
                                 subtitle: titleController2.text.trim(),
                                 startDate: startDate!,
@@ -317,8 +317,10 @@ class _AddCampaignScreenState extends State<AddCampaignScreen> {
                                 uploadedImageName = null;
                               });
 
-                              if (context.mounted) {
-                                context.beamToNamed('/campaigns');
+                              if(context.canBeamBack){
+                                context.beamBack();
+                              }else{
+                                context.beamToReplacementNamed('/campaigns');
                               }
                             }
                           },

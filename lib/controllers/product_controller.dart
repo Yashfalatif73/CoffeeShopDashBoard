@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coffee_shop_dashboard/controllers/base_controller/my_controller.dart';
+import 'package:coffee_shop_dashboard/core/helpers/colors.dart';
+import 'package:coffee_shop_dashboard/models/product_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -19,6 +21,7 @@ class ProductController extends MyController{
 
   final nameController = TextEditingController();
   final priceController = TextEditingController();
+  final quantityController = TextEditingController();
 
   // Lists from your screenshot
   final List<String> categories = [
@@ -59,15 +62,15 @@ class ProductController extends MyController{
   /// --------------------------------------------------------------
   /// 🔹 GET PRODUCT BY ID
   /// --------------------------------------------------------------
-  Future<Map<String, dynamic>?> getProductById(String docId) async {
+  Future<ProductModel?> getProductById(String docId, BuildContext context) async {
     try {
       final doc = await _firestore.collection(collectionName).doc(docId).get();
-      if (doc.exists) {
-        return doc.data();
+      if (doc.exists && doc.data() != null) {
+        return ProductModel.fromJson(doc.data()!);
       }
       return null;
     } catch (e) {
-      Get.snackbar("Error", "Failed to fetch product: $e");
+      generateMessage("Failed to fetch product: $e", context);
       return null;
     }
   }
@@ -76,9 +79,11 @@ class ProductController extends MyController{
   /// 🔹 ADD NEW PRODUCT
   /// --------------------------------------------------------------
   Future<bool> addProduct({
+    required BuildContext context,
     required String name,
     required String price,
     required String category,
+    required String quantity,
     String? subCategory,
     String? availableIn,
     String? size,
@@ -87,8 +92,15 @@ class ProductController extends MyController{
       isLoading.value = true;
 
       // Validation
-      if (name.isEmpty || price.isEmpty || category == "Select") {
-        Get.snackbar("Error", "Please fill all required fields");
+      if (name.isEmpty || price.isEmpty || category == "Select" || quantity.isEmpty) {
+        generateMessage("Please fill all required fields", context);
+        return false;
+      }
+
+      // Parse quantity
+      final int? parsedQuantity = int.tryParse(quantity);
+      if (parsedQuantity == null || parsedQuantity < 0) {
+        generateMessage("Please enter a valid quantity (0 or greater)", context);
         return false;
       }
 
@@ -100,10 +112,7 @@ class ProductController extends MyController{
           .get();
 
       if (existing.docs.isNotEmpty) {
-        Get.snackbar(
-          "Duplicate",
-          "Product with same name and category already exists!",
-        );
+        generateMessage("Product with same name and category already exists!", context);
         return false;
       }
 
@@ -114,30 +123,26 @@ class ProductController extends MyController{
       final docRef = _firestore.collection(collectionName).doc();
       final productId = docRef.id;
 
-      // Create product data
-      Map<String, dynamic> productData = {
-        "productId": productId, // Add productId field
-        "name": name,
-        "price": price,
-        "category": category,
-        "image": placeholderImage,
-        "createdAt": DateTime.now().toIso8601String(),
-      };
-
-      // Add optional fields if category is Coffee
-      if (category == "Coffee") {
-        productData["subCategory"] = subCategory ?? "Simple Latte";
-        productData["availableIn"] = availableIn ?? "Hot";
-        productData["size"] = size ?? "Medium";
-      }
+      // Create product model
+      final product = ProductModel(
+        productId: productId,
+        name: name,
+        price: price,
+        category: category,
+        quantity: parsedQuantity,
+        image: placeholderImage,
+        subCategory: category == "Coffee" ? (subCategory ?? "Simple Latte") : null,
+        availableIn: category == "Coffee" ? (availableIn ?? "Hot") : null,
+        size: category == "Coffee" ? (size ?? "Medium") : null,
+        createdAt: DateTime.now().toIso8601String(),
+      );
 
       // Add to Firestore using the generated document reference
-      await docRef.set(productData);
-
-      Get.snackbar("Success", "Product added successfully");
+      await docRef.set(product.toJson());
+      generateMessage("Product added successfully!", context, backgroundColor: kPrimaryGreen);
       return true;
     } catch (e) {
-      Get.snackbar("Error", "Failed to add product: $e");
+      generateMessage("Failed to add product: $e", context);
       return false;
     } finally {
       isLoading.value = false;
@@ -148,10 +153,12 @@ class ProductController extends MyController{
   /// 🔹 UPDATE PRODUCT
   /// --------------------------------------------------------------
   Future<bool> updateProduct({
+    required BuildContext context,
     required String docId,
     required String name,
     required String price,
     required String category,
+    required String quantity,
     String? subCategory,
     String? availableIn,
     String? size,
@@ -160,8 +167,15 @@ class ProductController extends MyController{
       isLoading.value = true;
 
       // Validation
-      if (name.isEmpty || price.isEmpty || category == "Select") {
-        Get.snackbar("Error", "Please fill all required fields");
+      if (name.isEmpty || price.isEmpty || category == "Select" || quantity.isEmpty) {
+        generateMessage("Please fill all required fields", context);
+        return false;
+      }
+
+      // Parse quantity
+      final int? parsedQuantity = int.tryParse(quantity);
+      if (parsedQuantity == null || parsedQuantity < 0) {
+        generateMessage("Please enter a valid quantity (0 or greater)", context);
         return false;
       }
 
@@ -169,6 +183,7 @@ class ProductController extends MyController{
         "name": name,
         "price": price,
         "category": category,
+        "quantity": parsedQuantity,
       };
 
       // Add optional fields if category is Coffee
@@ -185,10 +200,10 @@ class ProductController extends MyController{
 
       await _firestore.collection(collectionName).doc(docId).update(updatedData);
 
-      Get.snackbar("Success", "Product updated successfully");
+      generateMessage("Product updated successfully!", context, backgroundColor: kPrimaryGreen);
       return true;
     } catch (e) {
-      Get.snackbar("Error", "Failed to update product: $e");
+      generateMessage("Failed to update product: $e", context);
       return false;
     } finally {
       isLoading.value = false;
@@ -198,13 +213,13 @@ class ProductController extends MyController{
   /// --------------------------------------------------------------
   /// 🔹 DELETE PRODUCT
   /// --------------------------------------------------------------
-  Future<void> deleteProduct(String docId) async {
+  Future<void> deleteProduct(BuildContext context, String docId) async {
     isLoading.value = true;
     try {
       await _firestore.collection(collectionName).doc(docId).delete();
-      Get.snackbar("Deleted", "Product deleted successfully");
+      generateMessage("Product deleted successfully!", context, backgroundColor: kPrimaryGreen);
     } catch (e) {
-      Get.snackbar("Error", "Failed to delete product: $e");
+      generateMessage("Failed to delete product: $e", context);
     } finally {
       isLoading.value = false;
     }
@@ -216,6 +231,7 @@ class ProductController extends MyController{
   void clearForm() {
     nameController.clear();
     priceController.clear();
+    quantityController.clear();
     selectedCategory.value = "Select";
     selectedSubCategory.value = "Simple Latte";
     selectedAvailable.value = "Hot";
@@ -225,15 +241,16 @@ class ProductController extends MyController{
   /// --------------------------------------------------------------
   /// 🔹 LOAD PRODUCT DATA FOR EDITING
   /// --------------------------------------------------------------
-  void loadProductData(Map<String, dynamic> data) {
-    nameController.text = data["name"] ?? "";
-    priceController.text = data["price"] ?? "";
-    selectedCategory.value = data["category"] ?? "Select";
+  void loadProductData(ProductModel product) {
+    nameController.text = product.name;
+    priceController.text = product.price;
+    quantityController.text = product.quantity.toString();
+    selectedCategory.value = product.category;
     
-    if (data["category"] == "Coffee") {
-      selectedSubCategory.value = data["subCategory"] ?? "Simple Latte";
-      selectedAvailable.value = data["availableIn"] ?? "Hot";
-      selectedSize.value = data["size"] ?? "Small";
+    if (product.category == "Coffee") {
+      selectedSubCategory.value = product.subCategory ?? "Simple Latte";
+      selectedAvailable.value = product.availableIn ?? "Hot";
+      selectedSize.value = product.size ?? "Small";
     }
   }
 

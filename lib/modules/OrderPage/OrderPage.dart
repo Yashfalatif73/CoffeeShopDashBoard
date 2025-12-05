@@ -4,6 +4,7 @@ import 'package:coffee_shop_dashboard/widgets/my_widgets/my_flex_item.dart';
 import 'package:coffee_shop_dashboard/widgets/my_widgets/my_responsiv.dart';
 import 'package:flutter/material.dart';
 import '../../core/helpers/colors.dart';
+import '../../widgets/my_widgets/my_text.dart';
 
 class OrdersPage extends StatelessWidget {
   const OrdersPage({super.key});
@@ -26,9 +27,10 @@ class OrdersPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        MyText(
                           "Orders",
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          fontWeight: 700,
+                          fontSize: 24,
                         ),
                         Row(
                           children: [
@@ -78,7 +80,7 @@ class OrdersPage extends StatelessWidget {
         children: const [
           Icon(Icons.calendar_today, size: 18, color: Colors.black54),
           SizedBox(width: 10),
-          Text("Aug 10, 2025"),
+          MyText("Aug 10, 2025"),
           SizedBox(width: 8),
           Icon(Icons.keyboard_arrow_down),
         ],
@@ -100,7 +102,7 @@ class OrdersPage extends StatelessWidget {
         children: const [
           Icon(Icons.filter_list, size: 18, color: Colors.black54),
           SizedBox(width: 10),
-          Text("newest to oldest"),
+          MyText("newest to oldest"),
           SizedBox(width: 8),
           Icon(Icons.keyboard_arrow_down),
         ],
@@ -147,7 +149,7 @@ class OrdersPage extends StatelessWidget {
     return Expanded(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 12),
-        child: Text(text, style: headerStyle),
+        child: MyText(text, style: headerStyle),
       ),
     );
   }
@@ -165,13 +167,13 @@ class OrdersPage extends StatelessWidget {
                 children: [
                   const Icon(Icons.circle, size: 10, color: Colors.green),
                   const SizedBox(width: 10),
-                  Text(row[0]),
+                  MyText(row[0]),
                 ],
               ),
             ),
-            Expanded(child: Text(row[1])),
-            Expanded(child: Text(row[2])),
-            Expanded(child: Text(row[3])),
+            Expanded(child: MyText(row[1])),
+            Expanded(child: MyText(row[2])),
+            Expanded(child: MyText(row[3])),
 
             // STATUS BUTTON
             Expanded(
@@ -186,13 +188,11 @@ class OrdersPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Center(
-                    child: Text(
+                    child: MyText(
                       row[4],
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: row[5],
-                      ),
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: row[5],
                     ),
                   ),
                 ),
@@ -233,11 +233,9 @@ class OrdersPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         color: isSelected ? kPrimaryGreen : Colors.transparent,
       ),
-      child: Text(
+      child: MyText(
         "$number",
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black,
-        ),
+        color: isSelected ? colorWhite : colorBlack,
       ),
     );
   }

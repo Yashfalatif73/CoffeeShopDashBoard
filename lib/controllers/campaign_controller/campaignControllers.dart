@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coffee_shop_dashboard/controllers/base_controller/my_controller.dart';
+import 'package:coffee_shop_dashboard/core/helpers/colors.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CampaignsFirebaseController extends GetxController {
+class CampaignsFirebaseController extends MyController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// COLLECTION NAME
@@ -17,7 +20,7 @@ class CampaignsFirebaseController extends GetxController {
         .snapshots();
   }
 
-  Future<Map<String, dynamic>?> getCampaignById(String docId) async {
+  Future<Map<String, dynamic>?> getCampaignById(String docId, BuildContext context) async {
     try {
       final doc = await _firestore.collection(collectionName).doc(docId).get();
       if (doc.exists) {
@@ -25,12 +28,13 @@ class CampaignsFirebaseController extends GetxController {
       }
       return null;
     } catch (e) {
-      Get.snackbar("Error", "Failed to fetch campaign: $e");
+      generateMessage("Failed to fetch campaign: $e", context);
       return null;
     }
   }
 
   Future<bool> updateCampaign({
+    required BuildContext context,
     required String docId,
     required String title,
     required String subtitle,
@@ -50,7 +54,7 @@ class CampaignsFirebaseController extends GetxController {
 
       return true;
     } catch (e) {
-      Get.snackbar("Error", "Failed to update campaign: $e");
+      generateMessage("Failed to update campaign: $e", context);
       return false;
     } finally {
       isLoading.value = false;
@@ -60,6 +64,7 @@ class CampaignsFirebaseController extends GetxController {
 
 
   Future<bool> addCampaign({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required DateTime startDate,
@@ -80,10 +85,7 @@ class CampaignsFirebaseController extends GetxController {
           .get();
 
       if (existing.docs.isNotEmpty) {
-        Get.snackbar(
-          "Duplicate",
-          "Campaign with same details already exists!",
-        );
+        generateMessage("Campaign with same details already exists!", context);
         return false;
       }
 
@@ -104,9 +106,10 @@ class CampaignsFirebaseController extends GetxController {
         "createdAt": DateTime.now().toIso8601String(),
       });
 
+      generateMessage("Campaign added successfully!", context, backgroundColor: kPrimaryGreen);
       return true; // SUCCESS
     } catch (e) {
-      Get.snackbar("Error", "Failed to add campaign: $e");
+      generateMessage("Failed to add campaign: $e", context);
       return false;
     } finally {
       isLoading.value = false;
@@ -119,6 +122,7 @@ class CampaignsFirebaseController extends GetxController {
   /// 🔹 EDIT / UPDATE CAMPAIGN
   /// --------------------------------------------------------------
   Future<void> editCampaign({
+    required BuildContext context,
     required String docId,
     String? title,
     String? subtitle,
@@ -142,9 +146,9 @@ class CampaignsFirebaseController extends GetxController {
 
       await _firestore.collection(collectionName).doc(docId).update(updatedData);
 
-      Get.snackbar("Updated", "Campaign updated successfully");
+      generateMessage("Campaign updated successfully!", context, backgroundColor: kPrimaryGreen);
     } catch (e) {
-      Get.snackbar("Error", "Failed to update campaign: $e");
+      generateMessage("Failed to update campaign: $e", context);
     }finally{
       isLoading.value=false;
     }
@@ -153,14 +157,14 @@ class CampaignsFirebaseController extends GetxController {
   /// --------------------------------------------------------------
   /// 🔹 DELETE CAMPAIGN
   /// --------------------------------------------------------------
-  Future<void> deleteCampaign(String docId) async {
+  Future<void> deleteCampaign(BuildContext context, String docId) async {
     isLoading.value=true;
     try {
       await _firestore.collection(collectionName).doc(docId).delete();
 
-      Get.snackbar("Deleted", "Campaign deleted successfully");
+      generateMessage("Campaign deleted successfully!", context, backgroundColor: kPrimaryGreen);
     } catch (e) {
-      Get.snackbar("Error", "Failed to delete campaign: $e");
+      generateMessage("Failed to delete campaign: $e", context);
     }finally{
       isLoading.value=false;
     }

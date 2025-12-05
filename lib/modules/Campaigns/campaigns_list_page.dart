@@ -1,5 +1,6 @@
 import 'package:beamer/beamer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:coffee_shop_dashboard/controllers/base_controller/my_controller.dart';
 import 'package:coffee_shop_dashboard/core/helpers/colors.dart';
 import 'package:coffee_shop_dashboard/core/services/date_picker_service.dart';
 import 'package:coffee_shop_dashboard/modules/layouts/layout.dart';
@@ -23,11 +24,12 @@ class CampaignsListPage extends StatefulWidget {
 
 class _CampaignsListPageState extends State<CampaignsListPage> {
   final campaignsController = Get.put(CampaignsFirebaseController());
+  final myController = MyController();
 
   // -------------------- EDIT DIALOG FUNCTION --------------------
   void showEditCampaignDialog(BuildContext context, String docId) async {
     // Fetch campaign data first
-    final data = await campaignsController.getCampaignById(docId);
+    final data = await campaignsController.getCampaignById(docId, context);
     if (data == null) return;
 
     // Local controllers for the dialog
@@ -244,13 +246,14 @@ class _CampaignsListPageState extends State<CampaignsListPage> {
                                         titleController2.text.isEmpty ||
                                         startDate == null ||
                                         endDate == null) {
-                                      Get.snackbar(
-                                          "Error", "Please fill all fields");
+                                      myController.generateMessage(
+                                          "Please fill all fields", context);
                                       return;
                                     }
 
                                     bool success =
                                     await campaignsController.updateCampaign(
+                                      context: context,
                                       docId: docId,
                                       title: titleController1.text.trim(),
                                       subtitle: titleController2.text.trim(),
@@ -259,8 +262,6 @@ class _CampaignsListPageState extends State<CampaignsListPage> {
                                     );
 
                                     if (success) {
-                                      Get.snackbar(
-                                          "Success", "Campaign updated successfully");
                                       Navigator.pop(context);
                                     }
                                   },
@@ -380,7 +381,7 @@ class _CampaignsListPageState extends State<CampaignsListPage> {
                                               confirmBtnText: "Delete",
                                               cancelBtnText: "Cancel",
                                               onConfirm: () {
-                                                campaignsController.deleteCampaign(doc.id);
+                                                campaignsController.deleteCampaign(context, doc.id);
                                                 Navigator.of(context).pop();
                                               },
                                               onCancel: () {

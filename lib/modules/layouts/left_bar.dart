@@ -59,9 +59,14 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
       paddingAll: 0,
       shadow: MyShadow(position: MyShadowPosition.centerRight, elevation: 0.2),
       child: AnimatedContainer(
-        color: kPrimaryGreen,
         width: isCondensed ? 70 : 254,
-        // curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: kPrimaryGreen,
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(30),
+            bottomRight: Radius.circular(30),
+          )
+        ),
         duration: const Duration(milliseconds: 200),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

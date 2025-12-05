@@ -7,6 +7,7 @@
 import 'package:beamer/beamer.dart';
 import 'package:coffee_shop_dashboard/core/helpers/theme/app_style.dart';
 import 'package:coffee_shop_dashboard/core/utils/sp_utils.dart';
+import 'package:coffee_shop_dashboard/modules/error/not_found_page.dart';
 import 'package:coffee_shop_dashboard/widgets/my_widgets/my_text.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +47,11 @@ class MyApp extends StatelessWidget {
     // initialPath: '/admin/login',
     transitionDelegate: const NoAnimationTransitionDelegate(),
     setBrowserTabTitle: true,
-    // notFoundPage: const NotFoundBeamPage(),
+    notFoundPage: const BeamPage(
+      key: ValueKey('not-found'),
+      title: '404 - Page Not Found',
+      child: NotFoundPage(),
+    ),
     routeListener: (routeInformation, delegate) {
       // currentRoute = routeInformation.uri.path;
     },
@@ -208,7 +213,7 @@ class Sidebar extends StatelessWidget {
           children: [
             Image.asset(icon, color: Colors.white70, height: 30, width: 30,),
             const SizedBox(width: 14),
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
+            MyText(title, color: Colors.white, fontSize: 16),
             Spacer(),
             selected ? Icon(Icons.arrow_forward, color: Colors.white70, size: 20): SizedBox(width: 1,),
           ],
@@ -231,8 +236,7 @@ class Sidebar extends StatelessWidget {
               children: [
                 Image.asset('assets/images/logo.png', color: Colors.white, width: 46, height: 46),
                 const SizedBox(width: 12),
-                const Text('Market Coffee',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
+                const MyText('Market Coffee',color: Colors.white, fontSize: 18, fontWeight: 600),
               ],
             ),
           ),
@@ -256,13 +260,13 @@ class Sidebar extends StatelessWidget {
                 Row(children:  [
                   Image.asset('assets/images/setting.png', color: Colors.white70, height: 30, width: 30,),
                   SizedBox(width: 12),
-                  Text('Settings', style: TextStyle(color: Colors.white70)),
+                  MyText('Settings', color: Colors.white70),
                 ]),
                 const SizedBox(height: 12),
                 Row(children:  [
                   Image.asset('assets/images/logout.png', color: Colors.white70, height: 30, width: 30,),
                   SizedBox(width: 12),
-                  Text('Logout', style: TextStyle(color: Colors.white70)),
+                  MyText('Logout', color: Colors.white70),
                 ])
               ],
             ),
@@ -284,9 +288,6 @@ class TopBar extends StatelessWidget {
       child: Row(
         children: [
 
-          /// --------------------------------------------------------
-          /// SEARCH BAR (exact layout as your uploaded screenshot)
-          /// --------------------------------------------------------
           Expanded(
             child: Container(
               height: 42,
@@ -295,7 +296,7 @@ class TopBar extends StatelessWidget {
                 color: const Color(0xffE8F2EB),
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(
-                  color: Color(0xFF057939).withOpacity(0.2)
+                  color: Color(0xFF057939).withValues(alpha: 0.2)
                 )
               ),
               child: Row(
@@ -306,9 +307,10 @@ class TopBar extends StatelessWidget {
                       width: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF579395).withOpacity(0.3)
+                        color: Color(0xFF579395).withValues(alpha: 0.3)
                       ),
-                      child: const Icon(Icons.search, color: Colors.green,size: 14,)),
+                      child: const Icon(Icons.search, color: Colors.green,size: 14,)
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
@@ -341,20 +343,16 @@ class TopBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  MyText(
                     "Daveo",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    fontWeight: 600,
+                    fontSize: 14,
                   ),
                   const SizedBox(height:2),
-                  Text(
+                  MyText(
                     "Admin",
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
                   ),
                 ],
               ),
@@ -462,8 +460,8 @@ class _DashboardHeaderState extends State<DashboardHeader> {
       children: [
         MyText.bodyLarge(
           'Dashboard',
-          fontWeight: 800,
-          fontSize: 30,
+          fontWeight: 700,
+          fontSize: 24,
           // style: GoogleFonts.poppins(
           //   fontSize: 30,
           //   fontWeight: FontWeight.bold,
@@ -543,82 +541,17 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Text(
+        child: MyText(
           title,
-          style: GoogleFonts.poppins(
-            color: isSelected ? Colors.black : Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          color: isSelected ? Colors.black : Colors.white,
+          fontWeight: 600,
         ),
       ),
     );
   }
 
-  /// ----------------------------------------------------------
-  /// UNSELECTED TEXT TABS
-  /// ----------------------------------------------------------
-  Widget _textTab(String title) {
-    return GestureDetector(
-      onTap: () {
-        setState(() => selected = title);
-      },
-      child: Text(
-        title,
-        style: GoogleFonts.poppins(
-          fontSize: 15,
-          color: Colors.white,
-          fontWeight: selected == title ? FontWeight.w600 : FontWeight.w400,
-        ),
-      ),
-    );
-  }
 }
 
-
-
-// class DashboardHeader extends StatelessWidget {
-//   const DashboardHeader({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         const Text('Dashboard', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-//         const SizedBox(height: 14),
-//         // Tab-like date filter
-//         Container(
-//           height: 48,
-//           padding: const EdgeInsets.all(6),
-//           decoration: BoxDecoration(
-//             color: kLightGreen.withOpacity(0.6),
-//             borderRadius: BorderRadius.circular(40),
-//           ),
-//           child: Row(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               Container(
-//                 width: 120,
-//                 height: 36,
-//                 alignment: Alignment.center,
-//                 decoration: BoxDecoration(
-//                   color: kPrimaryGreen,
-//                   borderRadius: BorderRadius.circular(30),
-//                 ),
-//                 child: const Text('Today', style: TextStyle(color: Colors.white)),
-//               ),
-//               const SizedBox(width: 12),
-//               const SizedBox(
-//                   width: 140, child: Center(child: Text('This Week'))),
-//               const SizedBox(width: 12),
-//               const SizedBox(width: 140, child: Center(child: Text('This Month'))),
-//             ],
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
 
 class InfoCardsRow extends StatelessWidget {
   const InfoCardsRow({super.key});
@@ -626,14 +559,13 @@ class InfoCardsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final cardWidth = (constraints.maxWidth - 72) / 4;
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: const [
           InfoCard(title: 'Total Sales', value: '\$12,500', sub: '+10%'),
           InfoCard(title: 'Orders Today', value: '230', sub: '+5%'),
           InfoCard(title: 'Active Campaigns', value: '5', sub: '0%'),
-          InfoCard(title: 'Low Stock Products', value: '12', sub: '0%'),
+          InfoCard(title: 'Total Products', value: '12', sub: '0%'),
         ],
       );
     });
@@ -660,11 +592,11 @@ class InfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Colors.black54)),
+            MyText(title, color: Colors.black54),
             const SizedBox(height: 12),
-            Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            MyText(value, fontSize: 28, fontWeight: 600),
             const SizedBox(height: 8),
-            Text(sub, style: const TextStyle(color: Colors.green)),
+            MyText(sub, color: Colors.green),
           ],
         ),
       ),
@@ -683,15 +615,15 @@ class RevenueAnalyticsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Revenue Analytics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const MyText('Revenue Analytics', fontSize: 20, fontWeight: 700),
         const SizedBox(height: 10),
         Row(
           children: const [
-            Text('\$12,500', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),
+            MyText('\$12,500', fontSize: 28, fontWeight: 700),
             SizedBox(width: 12),
-            Text('This Week', style: TextStyle(color: Colors.black54)),
+            MyText('This Week', color: Colors.black54),
             SizedBox(width: 6),
-            Text('+10%', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+            MyText('+10%', color: Colors.green, fontWeight: 700),
           ],
         ),
         const SizedBox(height: 18),
@@ -715,7 +647,7 @@ class RevenueAnalyticsSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(days[index], style: const TextStyle(color: Colors.black54)),
+                    MyText(days[index], color: Colors.black54),
                   ],
                 ),
               );
